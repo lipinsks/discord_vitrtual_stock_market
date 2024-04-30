@@ -1,0 +1,4 @@
+yfinance
+discord.py
+discord
+pytz
