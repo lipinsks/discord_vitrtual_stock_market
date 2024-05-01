@@ -2,4 +2,5 @@
 .idea/
 bot_venv
 src/__pycache__/
+game.db
 

@@ -13,12 +13,12 @@ from stocks import get_stocks, choose_stock
 conn = sqlite3.connect('game.db')
 c = conn.cursor()
 
-BOT_TOKEN = "YOUR DISCORD BOT TOKEN"
+BOT_TOKEN = "YOUR DISCORD BOT TOKEN HERE"
 
 
 # Define your class for user instances
 class UserPlayer:
-    def __init__(self, user_id, username, balance=10000, portfolio=None):
+    def __init__(self, user_id, username, balance=10000.00, portfolio=None):
         self.user_id = user_id
         self.username = username
         self.balance = balance
@@ -66,8 +66,8 @@ class UserPlayer:
                 combined_portfolio[stock_name] = amount
         self.portfolio = [(stock_name, amount) for stock_name, amount in combined_portfolio.items()]
 
-    def get_total_value(self, company):
-        chosen_stock = choose_stock(company)
+    def get_total_value(self, company, stocks):
+        chosen_stock = choose_stock(company, stocks)
         stock_name = chosen_stock[0]
         stock_price = chosen_stock[1]
 
@@ -163,27 +163,32 @@ async def portfolio(ctx):
         user_instance = user_instances[user_id]
         user_instance.combine_duplicate_entries()
         user_instance.remove_zero()
-        message = ""
-        if not user_instance.portfolio:
-            await ctx.send("Your portfolio is empty.")
-
-        full_value = 0
-
-        for company, _ in user_instance.portfolio:
-            stock_value = user_instance.get_total_value(company)
-            full_value += stock_value
-
-        for entry in user_instance.portfolio:
-            stock_name, shares = entry  # Unpack the tuple
-            formatted_value = f"{user_instance.get_total_value(stock_name):.2f}"
-            formatted_shares = f"{shares:.4f}"
-            message += f"{stock_name} - shares: {formatted_shares}, total value: ${formatted_value}\n"
-
         if user_instance.portfolio:
-            message += f'Your portfolio is worth ${"{:.2f}".format(full_value)}'
+            message = ""
+            await ctx.send("Calculating...")
+            stocks_for_total_value = get_stocks(stocks_names)
+            if not user_instance.portfolio:
+                await ctx.send("Your portfolio is empty.")
 
-        await ctx.send(message)
+            full_value = 0
 
+            for company, _ in user_instance.portfolio:
+                stock_value = user_instance.get_total_value(company, stocks_for_total_value)
+                full_value += stock_value
+
+            for entry in user_instance.portfolio:
+                stock_name, shares = entry  # Unpack the tuple
+                formatted_value = f"{user_instance.get_total_value(stock_name, stocks_for_total_value):.2f}"
+                formatted_shares = f"{shares:.4f}"
+                message += f"{stock_name} - shares: {formatted_shares}, total value: ${formatted_value}\n"
+
+            if user_instance.portfolio:
+                message += f'Your portfolio is worth ${"{:.2f}".format(full_value)}'
+
+            await ctx.send(message)
+
+        else:
+            await ctx.send("Your portfolio is empty.")
     else:
         await ctx.send("Please register first - !register")
 
@@ -191,6 +196,7 @@ async def portfolio(ctx):
 # print available stocks
 @bot.command()
 async def show_stocks(ctx):
+    await ctx.send("Fetching stocks...")
     start_time = time.time()
     stocks = get_stocks(stocks_names)
     message = ""
@@ -208,13 +214,16 @@ async def buy(ctx, company: str, for_how_much: float):
     if user_id in user_instances:
         user_instance = user_instances[user_id]
 
-        chosen_stock = choose_stock(company)
-        stock_name = chosen_stock[0]
-        stock_price = chosen_stock[1]
-
         if for_how_much > user_instance.balance:
             await ctx.send("Sorry, you don't have enough balance")
             return
+        else:
+            await ctx.send(f"Buying {company}...")
+
+        stocks = get_stocks(stocks_names)
+        chosen_stock = choose_stock(company,stocks)
+        stock_name = chosen_stock[0]
+        stock_price = chosen_stock[1]
 
         bought_stock_amount = for_how_much / float(stock_price)
         user_instance.portfolio.append((stock_name, bought_stock_amount))
@@ -239,8 +248,10 @@ async def sell(ctx, company: str, desired_price: float):
     user_id = ctx.author.id
     if user_id in user_instances:
         user_instance = user_instances[user_id]
+        await ctx.send(f"Loading {company} stock...")
 
-        chosen_stock = choose_stock(company)
+        stocks = get_stocks(stocks_names)
+        chosen_stock = choose_stock(company, stocks)
         stock_name = chosen_stock[0]
         stock_price = chosen_stock[1]
 
@@ -266,7 +277,7 @@ async def sell(ctx, company: str, desired_price: float):
 
                         return
         else:
-            await ctx.send(f"You don't have enough of this stock in your portfolio.")
+            await ctx.send(f"You don't have enough {company} stock in your portfolio.")
     else:
         await ctx.send("Please register first - !register")
 
@@ -276,8 +287,10 @@ async def sell_shares(ctx, company: str, shares: float):
     user_id = ctx.author.id
     if user_id in user_instances:
         user_instance = user_instances[user_id]
+        await ctx.send(f"Loading {company} stock...")
 
-        chosen_stock = choose_stock(company)
+        stocks = get_stocks(stocks_names)
+        chosen_stock = choose_stock(company, stocks)
         stock_name = chosen_stock[0]
         stock_price = chosen_stock[1]
 
@@ -290,8 +303,9 @@ async def sell_shares(ctx, company: str, shares: float):
                     stock_name, remaining_shares)  # Update the amount of stocks in portfolio
                 formatted_balance = "{:.2f}".format(user_instance.balance)
                 formatted_shares = "{:.2f}".format(shares)
+                formatted_total_value = "{:.2f}".format(total_value)
                 await ctx.send(
-                    f"Sold {formatted_shares} shares of {company}, for total value of: ${total_value}, remaining balance: ${formatted_balance}")
+                    f"Sold {formatted_shares} shares of {company}, for total value of: ${formatted_total_value}, remaining balance: ${formatted_balance}")
 
                 user_instance.update_player_db()
                 user_instance.combine_duplicate_entries()
@@ -308,8 +322,10 @@ async def sell_all(ctx, company: str):
     user_id = ctx.author.id
     if user_id in user_instances:
         user_instance = user_instances[user_id]
+        await ctx.send(f"Loading {company} stock...")
 
-        chosen_stock = choose_stock(company)
+        stocks = get_stocks(stocks_names)
+        chosen_stock = choose_stock(company, stocks)
         stock_name = chosen_stock[0]
         stock_price = chosen_stock[1]
 
@@ -332,7 +348,7 @@ async def sell_all(ctx, company: str):
             await ctx.send(
                 f"Sold all stocks of {company}, for total value of: ${formatted_total_value}, remaining balance: ${formatted_balance}")
         else:
-            await ctx.send("You don't have any stocks of", company, "to sell.")
+            await ctx.send(f"You don't have any stocks of {company} to sell.")
     else:
         await ctx.send("Please register first - !register")
 
@@ -364,14 +380,14 @@ async def helper(ctx):
 
 Trade with virtual money on a real life stock market:
 
-Each player gets assigned $1000 to invest into top 50 stocks from Yahoo Stock Market.  
-Whoever ends up with the biggest balance after 30 days wins.
+Each player gets assigned $10000 to invest into top 50 stocks from Yahoo Stock Market.  
+Whoever ends up with the biggest balance after n days wins.
 
 To play along: !register
 
  - Available commands:
  
-    - !show_stocks - show current stock market (fetching all 50 stocks takes up from 5 to 7 seconds)
+    - !show_stocks - show stock market prices
     
     - !balance - show balance of your account
     - !portfolio - show your portfolio content

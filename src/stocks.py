@@ -42,11 +42,9 @@ def print_stocks(available_stocks):
         print(f"{stock.name}: {stock.price:.2f}")  # Format price to have one decimal place
 
 
-def choose_stock(name):
+def choose_stock(name, stocks):
     for stock in stocks:
         if stock.name == name:
             return stock.name, stock.price
 
 
-# Fetch stocks data
-stocks = get_stocks(stocks_names.stocks_names)
