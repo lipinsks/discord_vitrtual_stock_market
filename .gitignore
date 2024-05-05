@@ -3,4 +3,5 @@
 bot_venv
 src/__pycache__/
 game.db
+nohup.out
 
