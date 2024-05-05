@@ -1,4 +1,5 @@
 from datetime import datetime
+import datetime
 import json
 import logging
 import sqlite3
@@ -353,24 +354,27 @@ async def sell_all(ctx, company: str):
         await ctx.send("Please register first - !register")
 
 
-@bot.command()
-async def market_status(ctx):
-    def is_between_working_hours():
-        # Get current time
-        current_time = datetime.now(pytz.timezone('US/Eastern'))
+def is_between_working_hours():
+    # Get current time
+    current_time = datetime.datetime.now(pytz.timezone('US/Eastern'))
 
+    # Check if it's a weekday
+    if current_time.weekday() < 5:  # Monday is 0, Sunday is 6
         # Define working hours
         start_time = current_time.replace(hour=9, minute=30, second=0, microsecond=0)
         end_time = current_time.replace(hour=16, minute=0, second=0, microsecond=0)
 
         # Check if current time is between working hours
         return start_time <= current_time <= end_time
+    else:
+        return False
 
+@bot.command()
+async def market_status(ctx):
     if is_between_working_hours():
         await ctx.send("Market is open")
     else:
         await ctx.send("Market is closed")
-
 
 @bot.command()
 async def helper(ctx):
