@@ -1,0 +1,19 @@
+# Exclude virtual environments
+bot_venv
+venv
+
+# Exclude Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Exclude version control directories
+.git/
+.gitignore
+
+# Exclude other unnecessary files
+.DS_Store
+.env
+*.sqlite3
+*.db
+.idea/
