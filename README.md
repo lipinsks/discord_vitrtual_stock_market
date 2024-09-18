@@ -31,5 +31,9 @@ Then, run the following to kill the process found with command used before:
 kill <PID>
 ```
 
+### DOCKER
+Alternatively, you can switch over to branch "dockerization" and complete deployment using Docker :)
+
+
 ### Feedback
 Feel free to send me your feedback :)
