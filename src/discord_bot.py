@@ -1,3 +1,5 @@
+#TODO dodac parametry do get_stocks (period opcjonalne na "1mo") jest razem 8 funkcji do poprawienia -- BARDZO WAZNE !!!!!!
+
 from datetime import datetime
 import json
 import logging
@@ -193,20 +195,24 @@ async def portfolio(ctx):
         await ctx.send("Please register first - !register")
 
 
+# TODO finish
 # print available stocks
 @bot.command()
-async def show_stocks(ctx):
+async def show_stocks(ctx, period: str):
     await ctx.send("Fetching stocks...")
     start_time = time.time()
-    stocks = get_stocks(stocks_names)
-    message = ""
+    if period:
+        stocks = get_stocks(stocks_names, period)
+        message = "1 MONTH OLD STOCKS AND PRICES: "
+    else:
+        stocks = get_stocks(stock_names)
+        message = "CURRENT STOCKS AND PRICES: "
     for stock in stocks:
         message += f"{stock.name} - price: ${stock.price:.2f}\n"
     finish_time = time.time()
     overall_time = finish_time - start_time
     await ctx.send(message)
     print(f"fetching stocks took: {overall_time} seconds.")
-
 
 @bot.command()
 async def buy(ctx, company: str, for_how_much: float):

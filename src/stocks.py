@@ -13,10 +13,13 @@ class Stock:
         self.price = price
 
     @staticmethod
-    def get_stock_price(symbol):
+    def get_stock_price(symbol, period):
         try:
             stock = yf.Ticker(symbol)
-            today_price = stock.history(period='1d')
+            if perdiod == '1d':
+                today_price = stock.history(period=period)
+            elif period == '1mo':
+                today_price = stock.history(period=period)
             if today_price.empty:
                 # logging.warning(f"No data available for symbol {symbol}")
                 return None
@@ -28,10 +31,10 @@ class Stock:
             return None
 
 
-def get_stocks(stock_names):
+def get_stocks(stock_names, period):
     stocks_list = []
     for company, symbol in stock_names.items():
-        price = Stock.get_stock_price(symbol)
+        price = Stock.get_stock_price(symbol, period))
         if price is not None:
             stocks_list.append(Stock(company, symbol, price))
     return stocks_list

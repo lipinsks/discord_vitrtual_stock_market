@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/home/lipinsks/Desktop/running_projects/discord_vitrtual_stock_market/src/discord_bot.py", line 7, in <module>
+    import discord
+ModuleNotFoundError: No module named 'discord'
